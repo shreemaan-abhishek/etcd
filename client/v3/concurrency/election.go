@@ -69,40 +69,62 @@ func ResumeElection(s *Session, pfx string, leaderKey string, leaderRev int64) *
 func (e *Election) Campaign(ctx context.Context, val string) error {
 	s := e.session
 	client := e.session.Client()
+	l := client.GetLogger()
 
+	l.Debug("Check")
 	k := fmt.Sprintf("%s%x", e.keyPrefix, s.Lease())
+	l.Debug("Check")
 	txn := client.Txn(ctx).If(v3.Compare(v3.CreateRevision(k), "=", 0))
+	l.Debug("Check")
 	txn = txn.Then(v3.OpPut(k, val, v3.WithLease(s.Lease())))
+	l.Debug("Check")
 	txn = txn.Else(v3.OpGet(k))
+	l.Debug("Check")
 	resp, err := txn.Commit()
+	l.Debug("Check")
 	if err != nil {
 		return err
 	}
+	l.Debug("Check")
 	e.leaderKey, e.leaderRev, e.leaderSession = k, resp.Header.Revision, s
+	l.Debug("Check")
 	if !resp.Succeeded {
+		l.Debug("Check")
 		kv := resp.Responses[0].GetResponseRange().Kvs[0]
+		l.Debug("Check")
 		e.leaderRev = kv.CreateRevision
+		l.Debug("Check")
 		if string(kv.Value) != val {
+			l.Debug("Check")
 			if err = e.Proclaim(ctx, val); err != nil {
+				l.Debug("Check")
 				e.Resign(ctx)
+				l.Debug("Check")
 				return err
 			}
 		}
 	}
-
+	l.Debug("Check")
 	_, err = waitDeletes(ctx, client, e.keyPrefix, e.leaderRev-1)
+	l.Debug("Check")
 	if err != nil {
-		// clean up in case of context cancel
+		l.Debug("Check")
+	// clean up in case of context cancel
 		select {
 		case <-ctx.Done():
+			l.Debug("Check")
 			e.Resign(client.Ctx())
 		default:
+			l.Debug("Check")
 			e.leaderSession = nil
 		}
+		l.Debug("Check")
 		return err
 	}
+	l.Debug("Check")
 	e.hdr = resp.Header
 
+	l.Debug("Check")
 	return nil
 }
 

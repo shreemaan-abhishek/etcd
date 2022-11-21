@@ -77,6 +77,7 @@ type Client struct {
 
 // New creates a new etcdv3 client from a given configuration.
 func New(cfg Config) (*Client, error) {
+	cfg.Logger.Debug("Client")
 	if len(cfg.Endpoints) == 0 {
 		return nil, ErrNoAvailableEndpoints
 	}
